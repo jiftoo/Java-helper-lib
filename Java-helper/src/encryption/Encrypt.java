@@ -3,148 +3,52 @@ package encryption;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
-
-import useful.Useful;
 
 public class Encrypt {
 	
 	private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
 	
-	static EncResult string(final String toEnc, final String algo)
+	private static enum DTYPE
+	{
+		STRING, OBJ, OTHER;
+	}
+	
+	static <TYPE> EncResult _enc_internal(final TYPE toEnc, final String algo, DTYPE t)
 	{
 		synchronized(Encrypt.class) {
 			long st = System.nanoTime();
 			
 			MessageDigest mdig = null;
-			try{mdig = MessageDigest.getInstance(algo);}catch(Exception ex) {ex.printStackTrace();}
+			try
+			{
+				mdig = MessageDigest.getInstance(algo);
+			}
+			catch(Exception ex)
+			{
+				ex.printStackTrace();
+			}
+			byte[] sorted_todigest;
+			if(t == DTYPE.STRING)
+				sorted_todigest = ((String)toEnc).getBytes(StandardCharsets.UTF_8);
+			else if(t == DTYPE.OBJ)
+				sorted_todigest = (toEnc.toString() + (toEnc.getClass().getName() + "@" + Integer.toHexString(toEnc.hashCode()))).getBytes(StandardCharsets.UTF_8);
+			else
+				sorted_todigest = toEnc.toString().getBytes(StandardCharsets.UTF_8);
 			
-			byte[] bytes = mdig.digest(toEnc.getBytes(StandardCharsets.UTF_8));
-		    char[] hexChars = new char[bytes.length * 2];
-		    for ( int j = 0; j < bytes.length; j++ ) {
-		        int v = bytes[j] & 0xFF;
+			byte[] digested_bytes = mdig.digest(sorted_todigest);
+					
+		    char[] hexChars = new char[digested_bytes.length * 2];
+		    
+		    for ( int j = 0; j < digested_bytes.length; j++ ) {
+		        int v = digested_bytes[j] & 0xFF;
 		        hexChars[j * 2] = hexArray[v >>> 4];
 		        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
 		    }
 		    return new EncResult(hexChars, System.nanoTime() - st);
 		}
 	}
-	static EncResult Int(final Integer toEnc, final String algo)
-	{
-		synchronized(Encrypt.class) {
-			MessageDigest mdig = null;
-			try{mdig = MessageDigest.getInstance(algo);}catch(Exception ex) {ex.printStackTrace();}
-			
-			byte[] bytes = mdig.digest(toEnc.toString().getBytes(StandardCharsets.UTF_8));
-		    char[] hexChars = new char[bytes.length * 2];
-		    for ( int j = 0; j < bytes.length; j++ ) {
-		        int v = bytes[j] & 0xFF;
-		        hexChars[j * 2] = hexArray[v >>> 4];
-		        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-		    }
-		    return new EncResult(hexChars, toEnc);
-		}
-	}
-	static EncResult Float(final Float toEnc, final String algo)
-	{
-		synchronized(Encrypt.class) {
-			MessageDigest mdig = null;
-			try{mdig = MessageDigest.getInstance(algo);}catch(Exception ex) {ex.printStackTrace();}
-			
-			byte[] bytes = mdig.digest(toEnc.toString().getBytes(StandardCharsets.UTF_8));
-		    char[] hexChars = new char[bytes.length * 2];
-		    for ( int j = 0; j < bytes.length; j++ ) {
-		        int v = bytes[j] & 0xFF;
-		        hexChars[j * 2] = hexArray[v >>> 4];
-		        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-		    }
-		    return new EncResult(hexChars, 0);
-		}
-	}
-	static EncResult Double(final Double toEnc, final String algo)
-	{
-		synchronized(Encrypt.class) {
-			MessageDigest mdig = null;
-			try{mdig = MessageDigest.getInstance(algo);}catch(Exception ex) {ex.printStackTrace();}
-			
-			byte[] bytes = mdig.digest(toEnc.toString().getBytes(StandardCharsets.UTF_8));
-		    char[] hexChars = new char[bytes.length * 2];
-		    for ( int j = 0; j < bytes.length; j++ ) {
-		        int v = bytes[j] & 0xFF;
-		        hexChars[j * 2] = hexArray[v >>> 4];
-		        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-		    }
-		    return new EncResult(hexChars, 0);
-		}
-	}
-	static EncResult Long(final Long toEnc, final String algo)
-	{
-		synchronized(Encrypt.class) {
-			MessageDigest mdig = null;
-			try{mdig = MessageDigest.getInstance(algo);}catch(Exception ex) {ex.printStackTrace();}
-			
-			byte[] bytes = mdig.digest(toEnc.toString().getBytes(StandardCharsets.UTF_8));
-		    char[] hexChars = new char[bytes.length * 2];
-		    for ( int j = 0; j < bytes.length; j++ ) {
-		        int v = bytes[j] & 0xFF;
-		        hexChars[j * 2] = hexArray[v >>> 4];
-		        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-		    }
-		    return new EncResult(hexChars, 0);
-		}
-	}
-	static EncResult Byte(final Byte toEnc, final String algo)
-	{
-		synchronized(Encrypt.class) {
-			MessageDigest mdig = null;
-			try{mdig = MessageDigest.getInstance(algo);}catch(Exception ex) {ex.printStackTrace();}
-			
-			byte[] bytes = mdig.digest(toEnc.toString().getBytes(StandardCharsets.UTF_8));
-		    char[] hexChars = new char[bytes.length * 2];
-		    for ( int j = 0; j < bytes.length; j++ ) {
-		        int v = bytes[j] & 0xFF;
-		        hexChars[j * 2] = hexArray[v >>> 4];
-		        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-		    }
-		    return new EncResult(hexChars,0);
-		}
-	}
-	static EncResult Char(final Character toEnc, final String algo)
-	{
-		synchronized(Encrypt.class) {
-			MessageDigest mdig = null;
-			try{mdig = MessageDigest.getInstance(algo);}catch(Exception ex) {ex.printStackTrace();}
-			
-			byte[] bytes = mdig.digest(toEnc.toString().getBytes(StandardCharsets.UTF_8));
-		    char[] hexChars = new char[bytes.length * 2];
-		    for ( int j = 0; j < bytes.length; j++ ) {
-		        int v = bytes[j] & 0xFF;
-		        hexChars[j * 2] = hexArray[v >>> 4];
-		        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-		    }
-		    return new EncResult(hexChars, 0);
-		}
-	}
-	static EncResult Object(final Object toEnc, final String algo)
-	{
-		synchronized(Encrypt.class) {
-			long st = System.nanoTime();
-			MessageDigest mdig = null;
-			try{mdig = MessageDigest.getInstance(algo);}catch(Exception ex) {ex.printStackTrace();}
-			
-			byte[] bytes = mdig.digest((toEnc.toString() + (toEnc.getClass().getName() + "@" + Integer.toHexString(toEnc.hashCode()))).getBytes(StandardCharsets.UTF_8));
-			System.out.println(new String(bytes));
-		    char[] hexChars = new char[bytes.length * 2];
-		    for ( int j = 0; j < bytes.length; j++ ) {
-		        int v = bytes[j] & 0xFF;
-		        hexChars[j * 2] = hexArray[v >>> 4];
-		        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-		    }
-		    return new EncResult(hexChars, System.nanoTime() - st);
-		}
-	}
+	
 	static String bench(final String alg)
 	{
 		synchronized(Encrypt.class) {
@@ -154,9 +58,9 @@ public class Encrypt {
 			ThreadLocalRandom loc_rand = ThreadLocalRandom.current();
 			for(int i=0;i<9999;i++)
 			{
-				bint = bint.add(BigInteger.valueOf(Encrypt.string(String.valueOf(loc_rand.nextInt()), alg).time()));
+				bint = bint.add(BigInteger.valueOf(Encrypt._enc_internal(String.valueOf(loc_rand.nextInt()), alg, DTYPE.STRING).time()));
 				if(i==0) 	first_calc = bint.intValue();
-				if(i==10) 	tenth_calc = Encrypt.string(String.valueOf(loc_rand.nextInt()), alg).time();
+				if(i==10) 	tenth_calc = Encrypt._enc_internal(String.valueOf(loc_rand.nextInt()), alg, DTYPE.STRING).time();
 			}
 			BigInteger bint_res = bint.divide(BigInteger.valueOf(9999));
 			
@@ -197,7 +101,7 @@ public class Encrypt {
 		 * EncResult - utility class, which provides helper methods such as {@link encryption.EncResult#print() print} or {@link encryption.EncResult#time() time},
 		 * also toString() is overridden to return the hash string (equivalent to calling {@link encryption.EncResult#get() get}).
 		 */
-		static public		EncResult 	String(String enc) 	{return Encrypt.string(enc, "MD5");}
+		static public		EncResult 	String(String enc) 	{return Encrypt._enc_internal(enc, "MD5", DTYPE.STRING);}
 		/**
 		 * Performs an encryption of a given Integer.
 		 * Supports concurrency!
@@ -223,7 +127,7 @@ public class Encrypt {
 		 * EncResult - utility class, which provides helper methods such as {@link encryption.EncResult#print() print} or {@link encryption.EncResult#time() time},
 		 * also toString() is overridden to return the hash string (equivalent to calling {@link encryption.EncResult#get() get}).
 		 */
-		static public		EncResult 	Int(Integer enc) 	{return Encrypt.Int(enc, "MD5");}
+		static public		EncResult 	Int(Integer enc) 	{return Encrypt._enc_internal(enc, "MD5", DTYPE.OTHER);}
 		/**
 		 * Performs an encryption of a given Float.
 		 * Supports concurrency!
@@ -249,7 +153,7 @@ public class Encrypt {
 		 * EncResult - utility class, which provides helper methods such as {@link encryption.EncResult#print() print} or {@link encryption.EncResult#time() time},
 		 * also toString() is overridden to return the hash string (equivalent to calling {@link encryption.EncResult#get() get}).
 		 */
-		static public 		EncResult 	Float(Float enc) 	{return Encrypt.Float(enc, "MD5");}
+		static public 		EncResult 	Float(Float enc) 	{return Encrypt._enc_internal(enc, "MD5", DTYPE.OTHER);}
 		/**
 		 * Performs an encryption of a given Double.
 		 * Supports concurrency!
@@ -275,7 +179,7 @@ public class Encrypt {
 		 * EncResult - utility class, which provides helper methods such as {@link encryption.EncResult#print() print} or {@link encryption.EncResult#time() time},
 		 * also toString() is overridden to return the hash string (equivalent to calling {@link encryption.EncResult#get() get}).
 		 */
-		static public		EncResult 	Double(Double enc) 	{return Encrypt.Double(enc, "MD5");}
+		static public		EncResult 	Double(Double enc) 	{return Encrypt._enc_internal(enc, "MD5", DTYPE.OTHER);}
 		/**
 		 * Performs an encryption of a given Byte.
 		 * Supports concurrency!
@@ -301,7 +205,7 @@ public class Encrypt {
 		 * EncResult - utility class, which provides helper methods such as {@link encryption.EncResult#print() print} or {@link encryption.EncResult#time() time},
 		 * also toString() is overridden to return the hash string (equivalent to calling {@link encryption.EncResult#get() get}).
 		 */
-		static public 		EncResult 	Byte(Byte enc) 		{return Encrypt.Byte(enc, "MD5");}
+		static public 		EncResult 	Byte(Byte enc) 		{return Encrypt._enc_internal(enc, "MD5", DTYPE.OTHER);}
 		/**
 		 * Performs an encryption of a given Character.
 		 * Supports concurrency!
@@ -327,7 +231,7 @@ public class Encrypt {
 		 * EncResult - utility class, which provides helper methods such as {@link encryption.EncResult#print() print} or {@link encryption.EncResult#time() time},
 		 * also toString() is overridden to return the hash string (equivalent to calling {@link encryption.EncResult#get() get}).
 		 */
-		static public	   	EncResult 	Char(Character enc) {return Encrypt.Char(enc, "MD5");}
+		static public	   	EncResult 	Char(Character enc) {return Encrypt._enc_internal(enc, "MD5", DTYPE.OTHER);}
 		/**
 		 * Performs an encryption of a given Object.
 		 * Supports concurrency!
@@ -353,7 +257,7 @@ public class Encrypt {
 		 * EncResult - utility class, which provides helper methods such as {@link encryption.EncResult#print() print} or {@link encryption.EncResult#time() time},
 		 * also toString() is overridden to return the hash string (equivalent to calling {@link encryption.EncResult#get() get}).
 		 */
-		static public		EncResult 	Object(Object enc)		{return Encrypt.Object(enc, "MD5");}
+		static public		EncResult 	Object(Object enc)		{return Encrypt._enc_internal(enc, "MD5", DTYPE.OBJ);}
 		
 		/**
 		 * 
@@ -387,13 +291,13 @@ public class Encrypt {
 		 * EncResult - utility class, which provides helper methods such as {@link encryption.EncResult#print() print} or {@link encryption.EncResult#time() time},
 		 * also toString() is overridden to return the hash string (equivalent to calling {@link encryption.EncResult#get() get}).
 		 */
-		static public		EncResult 	String(String enc) 	{return Encrypt.string(enc, "SHA-256");}
-		static public		EncResult 	Int(Integer enc) 	{return Encrypt.Int(enc, "SHA-256");}
-		static public 		EncResult 	Float(Float enc) 	{return Encrypt.Float(enc, "SHA-256");}
-		static public		EncResult 	Double(Double enc) 	{return Encrypt.Double(enc, "SHA-256");}
-		static public 		EncResult 	Byte(Byte enc) 		{return Encrypt.Byte(enc, "SHA-256");}
-		static public	   	EncResult 	Char(Character enc) {return Encrypt.Char(enc, "SHA-256");}
-		static public <V> 	EncResult 	Object(V enc)		{return Encrypt.Object(enc, "SHA-256");}
+		static public		EncResult 	String(String enc) 	{return Encrypt._enc_internal(enc, "SHA-256", DTYPE.STRING);}
+		static public		EncResult 	Int(Integer enc) 	{return Encrypt._enc_internal(enc, "SHA-256", DTYPE.OTHER);}
+		static public 		EncResult 	Float(Float enc) 	{return Encrypt._enc_internal(enc, "SHA-256", DTYPE.OTHER);}
+		static public		EncResult 	Double(Double enc) 	{return Encrypt._enc_internal(enc, "SHA-256", DTYPE.OTHER);}
+		static public 		EncResult 	Byte(Byte enc) 		{return Encrypt._enc_internal(enc, "SHA-256", DTYPE.OTHER);}
+		static public	   	EncResult 	Char(Character enc) {return Encrypt._enc_internal(enc, "SHA-256", DTYPE.OTHER);}
+		static public 	 	EncResult 	Object(Object enc)	{return Encrypt._enc_internal(enc, "SHA-256", DTYPE.OBJ);}
 		
 		static public 		String		Bench()				{return Encrypt.bench("sha-256");}
 	}
@@ -424,13 +328,13 @@ public class Encrypt {
 		 * EncResult - utility class, which provides helper methods such as {@link encryption.EncResult#print() print} or {@link encryption.EncResult#time() time},
 		 * also toString() is overridden to return the hash string (equivalent to calling {@link encryption.EncResult#get() get}).
 		 */
-		static public		EncResult 	String(String enc) 	{return Encrypt.string(enc, "SHA-512");}
-		static public		EncResult 	Int(Integer enc) 	{return Encrypt.Int(enc, "SHA-512");}
-		static public 		EncResult 	Float(Float enc) 	{return Encrypt.Float(enc, "SHA-512");}
-		static public		EncResult 	Double(Double enc) 	{return Encrypt.Double(enc, "SHA-512");}
-		static public 		EncResult 	Byte(Byte enc) 		{return Encrypt.Byte(enc, "SHA-512");}
-		static public	   	EncResult 	Char(Character enc) {return Encrypt.Char(enc, "SHA-512");}
-		static public <V> 	EncResult 	Object(V enc)		{return Encrypt.Object(enc, "SHA-512");}
+		static public		EncResult 	String(String enc) 	{return Encrypt._enc_internal(enc, "SHA-512", DTYPE.STRING);}
+		static public		EncResult 	Int(Integer enc) 	{return Encrypt._enc_internal(enc, "SHA-512", DTYPE.OTHER);}
+		static public 		EncResult 	Float(Float enc) 	{return Encrypt._enc_internal(enc, "SHA-512", DTYPE.OTHER);}
+		static public		EncResult 	Double(Double enc) 	{return Encrypt._enc_internal(enc, "SHA-512", DTYPE.OTHER);}
+		static public 		EncResult 	Byte(Byte enc) 		{return Encrypt._enc_internal(enc, "SHA-512", DTYPE.OTHER);}
+		static public	   	EncResult 	Char(Character enc) {return Encrypt._enc_internal(enc, "SHA-512", DTYPE.OTHER);}
+		static public 	 	EncResult 	Object(Object enc)	{return Encrypt._enc_internal(enc, "SHA-512", DTYPE.OBJ);}
 		
 		static public 		String		Bench()				{return Encrypt.bench("sha-512");}
 	}
@@ -461,13 +365,13 @@ public class Encrypt {
 		 * EncResult - utility class, which provides helper methods such as {@link encryption.EncResult#print() print} or {@link encryption.EncResult#time() time},
 		 * also toString() is overridden to return the hash string (equivalent to calling {@link encryption.EncResult#get() get}).
 		 */
-		static public		EncResult 	String(String enc) 	{return Encrypt.string(enc, "SHA");}
-		static public		EncResult 	Int(Integer enc) 	{return Encrypt.Int(enc, "SHA");}
-		static public 		EncResult 	Float(Float enc) 	{return Encrypt.Float(enc, "SHA");}
-		static public		EncResult 	Double(Double enc) 	{return Encrypt.Double(enc, "SHA");}
-		static public 		EncResult 	Byte(Byte enc) 		{return Encrypt.Byte(enc, "SHA");}
-		static public	   	EncResult 	Char(Character enc) {return Encrypt.Char(enc, "SHA");}
-		static public <V> 	EncResult 	Object(V enc)		{return Encrypt.Object(enc, "SHA");}
+		static public		EncResult 	String(String enc) 	{return Encrypt._enc_internal(enc, "SHA", DTYPE.STRING);}
+		static public		EncResult 	Int(Integer enc) 	{return Encrypt._enc_internal(enc, "SHA", DTYPE.OTHER);}
+		static public 		EncResult 	Float(Float enc) 	{return Encrypt._enc_internal(enc, "SHA", DTYPE.OTHER);}
+		static public		EncResult 	Double(Double enc) 	{return Encrypt._enc_internal(enc, "SHA", DTYPE.OTHER);}
+		static public 		EncResult 	Byte(Byte enc) 		{return Encrypt._enc_internal(enc, "SHA", DTYPE.OTHER);}
+		static public	   	EncResult 	Char(Character enc) {return Encrypt._enc_internal(enc, "SHA", DTYPE.OTHER);}
+		static public 	 	EncResult 	Object(Object enc)	{return Encrypt._enc_internal(enc, "SHA", DTYPE.OBJ);}
 		
 		static public 		String		Bench()				{return Encrypt.bench("sha");}
 	}
